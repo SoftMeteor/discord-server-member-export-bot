@@ -4,6 +4,13 @@
 Easily export list of Discord server members to a .csv file with no  user limit.\
 .cvs file can be open in Excel, Numbers, and Google Sheet
 
+## Features
+
+- Export: ID, Username, Display name, Nickname, Roles, Join server time, Account creation time, Tag, Discriminator, Bot
+- Sort by join server time
+- Seperate users and bots
+- Auto install required packages
+
 ## Setup Discord Bot
 
 **Creating bot**
