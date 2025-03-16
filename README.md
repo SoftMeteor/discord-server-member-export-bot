@@ -30,7 +30,7 @@ Easily export list of Discord server members to a .csv file with no  user limit.
 - *Required packages install automatically*
 
 **Running the bot**
-- Download and open main.py with your text-editor of choice
+- Download and open [Main.py](Main.py) with your text-editor of choice
 - Edit 3rd line to your bot token
 - *Edit 8th to your server ID (optional but recommended)*
 - Save, close, open main.py
@@ -43,7 +43,7 @@ Easily export list of Discord server members to a .csv file with no  user limit.
 ## Run on Google Colab
 - Go to [Google Colab](https://colab.research.google.com)
 - Create a new notebook
-- Paste the code from colab.ipynb
+- Paste the code from [Colab.ipynb](Colab.ipynb)
 - Edit 3rd line to your bot token
 - *Edit 8th to your server ID (optional but recommended)*
 - Click run (play icon on the left of the code block)
