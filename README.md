@@ -50,13 +50,15 @@ Easily export list of Discord server members to a .csv file with no  user limit.
 ## Run on Google Colab
 - Go to [Google Colab](https://colab.research.google.com)
 - Create a new notebook
-- Paste the code from [Colab.ipynb](Colab.ipynb)
+- Copy code from [Colab.py](Colab.py) and paste into a cell
 - Edit 3rd line to your bot token
 - *Edit 8th to your server ID (optional but recommended)*
 - Click run (play icon on the left of the code block)
+
+
 ## Usage
 
-In any text channel, use slash command
+Use slash command
 ```
   /exportmembers
 ```
