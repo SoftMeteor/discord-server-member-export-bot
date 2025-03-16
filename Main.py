@@ -11,21 +11,23 @@ SPECIFIED_GUILD_ID = None
 
 
 
+
 import sys
 import subprocess
 import importlib.util
 import os
-import site
+import site 
 from datetime import datetime
+from io import StringIO
 
-# Add user site-packages to path
-sys.path.append(site.getusersitepackages())
+
 
 # Check and install packages
 REQUIRED_PACKAGES = ["discord.py", "pandas"]
 
+sys.path.append(site.getusersitepackages())
+
 def check_package(package_name):
-    """Check if a package is installed"""
     if package_name == "discord.py":
         package_to_check = "discord"
     else:
@@ -33,7 +35,6 @@ def check_package(package_name):
     return importlib.util.find_spec(package_to_check) is not None
 
 def install_packages():
-    """Install required packages if not already installed"""
     missing_packages = [pkg for pkg in REQUIRED_PACKAGES if not check_package(pkg)]
     if missing_packages:
         print(f"Missing required packages: {', '.join(missing_packages)}")
@@ -42,11 +43,31 @@ def install_packages():
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing_packages)
             print("Package installation successful!")
+            
+            # Print installation path
+            for package in REQUIRED_PACKAGES:
+                pkg_name = "discord" if package == "discord.py" else package
+                if check_package(pkg_name):
+                    try:
+                        pkg = __import__(pkg_name)
+                        print(f"{package} installed at: {os.path.dirname(pkg.__file__)}")
+                    except Exception as e:
+                        print(f"Could not determine path for {package}: {e}")
+            
             return True
         except Exception as e:
             print(f"Error installing packages: {e}")
             input("Press Enter to exit...")
             return False
+    else:
+        print("All required packages are already installed:")
+        for package in REQUIRED_PACKAGES:
+            pkg_name = "discord" if package == "discord.py" else package
+            try:
+                pkg = __import__(pkg_name)
+                print(f"{package} installed at: {os.path.dirname(pkg.__file__)}")
+            except Exception as e:
+                print(f"Could not determine path for {package}: {e}")
     return True
 
 if not install_packages():
@@ -58,11 +79,9 @@ import pandas as pd
 
 
 
-
-
 # Setup
 intents = discord.Intents.default()
-intents.members = True  # Need this for accessing member data
+intents.members = True
 
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
@@ -94,8 +113,6 @@ async def on_ready():
 
 
 
-
-
 # Export members list to CSV
 async def export_members(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
@@ -113,38 +130,49 @@ async def export_members(interaction: discord.Interaction):
             roles = [role.name for role in member.roles if role.id != guild.id]
             roles_str = "; ".join(roles)
             
+            display_name = member.display_name if hasattr(member, 'display_name') else member.name
+            
             # Export data
             members_data.append({
                 "ID": member.id,
+                "Display Name": display_name,
                 "Username": member.name,
-                "Discriminator": member.discriminator,
-                "Tag": str(member),
-                "Bot": member.bot,
                 "Nickname": member.nick if member.nick else "",
+                "Roles": roles_str,
                 "Joined At": member.joined_at.isoformat() if member.joined_at else "",
                 "Created At": member.created_at.isoformat(),
-                "Roles": roles_str
+                "Tag": str(member),
+                "Discriminator": member.discriminator,
+                "Bot": "Yes" if member.bot else "No"
             })
         
         df = pd.DataFrame(members_data)
         
-        os.makedirs("exports", exist_ok=True)
+        # Sort and separate
+        df['Joined At Temp'] = pd.to_datetime(df['Joined At'], errors='coerce')
         
-        # Create CSV file
+        users_df = df[df['Bot'] == "No"].sort_values('Joined At Temp')
+        bots_df = df[df['Bot'] == "Yes"].sort_values('Joined At Temp')
+        
+        sorted_df = pd.concat([users_df, bots_df])
+        
+        sorted_df = sorted_df.drop('Joined At Temp', axis=1)
+        
+        # Save to memory
         guild_name = "".join(c if c.isalnum() else "_" for c in guild.name)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"exports/{guild_name}_members_{timestamp}.csv"
+        filename = f"{guild_name}_members_{timestamp}.csv"
         
-        # Save CSV to local file
-        df.to_csv(filename, index=False)
+        csv_buffer = StringIO()
+        sorted_df.to_csv(csv_buffer, index=False)
+        csv_buffer.seek(0)
         
-        # Send the file as a followup
         await interaction.followup.send(
             content=f"Exported {len(members_data)} members to CSV.",
-            file=discord.File(filename, filename=f"{guild_name}_members.csv")
+            file=discord.File(fp=StringIO(csv_buffer.getvalue()), filename=f"{guild_name}_members.csv")
         )
         
-        print(f"Exported {len(members_data)} members from {guild.name} to {filename}")
+        print(f"Exported {len(members_data)} members from {guild.name}")
         
     except Exception as e:
         print(f"Error exporting members: {e}")
