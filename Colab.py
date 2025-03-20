@@ -113,15 +113,7 @@ async def export_members(interaction: discord.Interaction):
         sorted_df.to_csv(csv_buffer, index=False)
         csv_buffer.seek(0)
         
-        # Display DataFrame
-        print("\nMember Data Preview:")
-        display(sorted_df.head(10))
-        
-        with open(filename, 'w') as f:
-            f.write(csv_buffer.getvalue())
-        
-        files.download(filename)
-        
+        # Send file
         await interaction.followup.send(
             content=f"Exported {len(members_data)} members to CSV.",
             file=discord.File(fp=StringIO(csv_buffer.getvalue()), filename=filename)
