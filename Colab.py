@@ -12,7 +12,7 @@ SPECIFIED_GUILD_ID = None
 
 
 
-!pip install discord.py pandas
+!pip install discord.py pandas nest_asyncio
 
 import os
 import discord
@@ -20,13 +20,15 @@ from discord import app_commands
 import pandas as pd
 from datetime import datetime
 from io import StringIO
-import asyncio
+import nest_asyncio
 from google.colab import files
 from IPython.display import display, HTML
 
 
 
 # Setup
+nest_asyncio.apply()
+
 intents = discord.Intents.default()
 intents.members = True
 
@@ -134,23 +136,13 @@ async def export_members_error(interaction: discord.Interaction, error: app_comm
         await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 
 # Run the bot
-async def run_bot():
-    if BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
-        print("\nERROR: You need to replace \"YOUR_BOT_TOKEN_HERE\" with your actual Discord bot token!")
-        return
-        
+if BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
+    print("\nERROR: You need to replace \"YOUR_BOT_TOKEN_HERE\" with your actual Discord bot token!")
+else:
     try:
         print("\nStarting Discord Member Export Bot...")
-        await client.start(BOT_TOKEN)
+        client.run(BOT_TOKEN)
     except discord.errors.LoginFailure:
         print("\nERROR: Invalid Discord bot token. Please check your token and try again.")
     except Exception as e:
         print(f"\nError: {e}")
-
-# Check token and run bot
-if BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
-    print("\nERROR: You need to replace \"YOUR_BOT_TOKEN_HERE\" with your actual Discord bot token!")
-else:
-    # Run the bot
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_bot())
